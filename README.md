@@ -6,14 +6,14 @@ The homepage opens on the door builder: the visitor builds one or more doors, an
 
 - `index.html`: the page (door builder first, then projects, reviews, services, about, service area, contact)
 - `styles.css`: mobile-first styles (brand navy #0033A0, Barlow / Barlow Condensed)
-- `app.js`: menu, call bar, the door builder (steps → finished doors → quote request → email hand-off), shared build links (`#build=`), help chat, photo lightbox
+- `app.js`: menu, call bar, the door builder (steps → finished doors → quote request → saved for the office), shared build links (`#build=`), help chat, photo lightbox
 - `builder-rules.js`: hardware compatibility rules (one list; edit it to change what the builder allows, adds, renames or notes)
-- `door-spec.js`: door catalog, the spec wording used on the page and in the email, and the link format (base64url JSON)
+- `door-spec.js`: door catalog, the spec wording used on the page and in the saved request, and the link format (base64url JSON)
 - `door-preview.js` / `door-preview.css`: door drawings (live beside the steps on desktop, and on each finished door)
 - `door-visualize.js` / `door-visualize.css`: optional "See it on your building" step (the photo never leaves the visitor's device)
-- `request.html` / `request.js` / `request.css`: a quote request as the office sees it, drawn entirely from its own link (`request.html#b=...` or `?b=...`); nothing is stored on the website
+- `request.html` / `request.js` / `request.css`: a quote request as the office sees it, drawn entirely from its own link (`request.html#b=...` or `?b=...`)
 - `images/`: company photos and logo
 
-Quote requests are delivered by the visitor's own email app (a pre-filled email to sonya@bluegrassdoor.com).
+Quote requests are saved to the office's Supabase table `quote_requests` (project `bluegrassdoor`) with a plain `fetch` and the public publishable key; the website can add requests but never read them. Each saved request emails the office through the `notify-quote` function. (The database setup and the email function are kept outside this repository.)
 
 Run it locally with `python3 -m http.server` in this folder, then open http://localhost:8000.

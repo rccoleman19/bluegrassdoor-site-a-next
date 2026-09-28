@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="images/team-in-front-of-shop.jpg">
-  <link rel="stylesheet" href="styles.css?v=next3">
+  <link rel="stylesheet" href="styles.css?v=next4">
   <link rel="stylesheet" href="door-preview.css?v=next3">
   <link rel="stylesheet" href="door-visualize.css?v=next3">
   <script type="application/ld+json">
@@ -241,11 +241,12 @@
                     <textarea id="q-msg" name="notes" rows="3" maxlength="1000" placeholder="e.g. replacing an existing storefront door, need it before opening day"></textarea>
                   </div>
                   <div class="q-photo" id="q-photo" hidden>
-                    <label class="q-check"><input type="checkbox" id="q-photo-yes" checked> I'll attach my photo of the door on my building</label>
-                    <p>Email can't pick up the photo by itself. When your email opens, attach <strong>my-building-with-new-door.jpg</strong> from your downloads, then press Send.</p>
+                    <label class="q-check"><input type="checkbox" id="q-photo-yes" checked> I have a photo of the new door on my building</label>
+                    <p>This form can't carry the photo. Keep <strong>my-building-with-new-door.jpg</strong> from your downloads and we'll ask you for it if it helps with your quote.</p>
                   </div>
-                  <button class="btn btn--accent btn--lg btn--block" type="submit" id="q-submit">Email my quote request</button>
-                  <p class="quote__fine">This opens your email app with your <span id="q-fine-doors">door</span> and details filled in, addressed to our office. Nothing is sent until you press Send. Prefer to talk? Call <a href="tel:+12707803235">270-780-3235</a>.</p>
+                  <button class="btn btn--accent btn--lg btn--block" type="submit" id="q-submit">Send my quote request</button>
+                  <div class="q-senderr" id="q-send-err" role="alert" hidden></div>
+                  <p class="quote__fine">Your <span id="q-fine-doors">door</span> and details go straight to our office. Prefer to talk? Call <a href="tel:+12707803235">270-780-3235</a>.</p>
                 </form>
               </div>
               <aside class="qside" aria-labelledby="qside-title">
@@ -256,20 +257,17 @@
             </div>
           </div>
 
-          <!-- 4. hand-off to email -->
+          <!-- 4. request received -->
           <div class="bview bview--sent" data-panel="sent" hidden>
             <div class="sent">
               <div class="sent__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></div>
-              <h2 id="sent-title" tabindex="-1">Almost done<span id="sent-name"></span>: press Send in your email</h2>
-              <p>Your email app should open with your request filled in, addressed to <strong>sonya@bluegrassdoor.com</strong>. Press <strong>Send</strong> and it goes to our office. Your reference is <strong class="sent__ref" id="sent-ref"></strong>.</p>
-              <p class="sent__photo" id="sent-photo" hidden>Before you press Send, attach <strong>my-building-with-new-door.jpg</strong> from your downloads.</p>
+              <h2 id="sent-title" tabindex="-1">Request received<span id="sent-name"></span></h2>
+              <p>Your reference is <strong class="sent__ref" id="sent-ref"></strong>. We'll be in touch.</p>
+              <p class="sent__photo" id="sent-photo" hidden>Keep <strong>my-building-with-new-door.jpg</strong> from your downloads. We'll ask you for it if it helps with your quote.</p>
               <div class="sent__acts">
-                <a class="btn btn--accent" id="sent-mailto" href="mailto:sonya@bluegrassdoor.com">Open my email again</a>
-                <button class="btn btn--outline" type="button" id="sent-copy">Copy the request</button>
                 <a class="btn btn--outline" href="tel:+12707803235">Call 270-780-3235</a>
               </div>
-              <p class="sent__help">Email didn't open? Copy the request, paste it into a new email to sonya@bluegrassdoor.com and send it, or give us a call.</p>
-              <p class="sent__copied" id="sent-copied" role="status" aria-live="polite"></p>
+              <p class="sent__help">Questions, or something to add? Give us a call and mention your reference.</p>
               <div class="sent__links">
                 <a id="sent-view" href="request.html" target="_blank" rel="noopener">See the request as our office will</a>
                 <button class="btn btn--text" type="button" id="sent-back">Back to my doors</button>
@@ -641,10 +639,10 @@
     </figure>
   </div>
 
-  <script src="door-preview.js?v=next3"></script>
+  <script src="door-preview.js?v=next4"></script>
   <script src="builder-rules.js?v=next3"></script>
-  <script src="door-spec.js?v=next3"></script>
-  <script src="app.js?v=next3"></script>
+  <script src="door-spec.js?v=next4"></script>
+  <script src="app.js?v=next4"></script>
   <script src="door-visualize.js?v=next3"></script>
 </body>
 </html>

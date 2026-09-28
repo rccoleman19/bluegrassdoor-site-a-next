@@ -169,6 +169,20 @@
     return "BGD-" + out;
   }
 
+  /* ---------- one door as saved with a quote request (the office's copy of the full spec) ---------- */
+  var SIZE_IN = { single: [36, 84], single8: [36, 96], pair: [72, 84] };
+  function ftIn(n) { if (!n) return ""; var f = Math.floor(n / 12); return f + "' " + (n - f * 12) + '"'; }
+  function record(d, i) {
+    var wh = d.size === "custom" ? [inch(d.cw), inch(d.ch)] : SIZE_IN[d.size] || [null, null];
+    return {
+      door: i + 1, location: d.loc || "", quantity: d.qty || 1,
+      type: typeLabel(d.type), type_id: d.type, material: materialLabel(d.type, d.material), material_id: d.material,
+      size: sizeText(d), size_id: d.size, custom_size: d.size === "custom",
+      width_in: wh[0], height_in: wh[1], width: ftIn(wh[0]), height: ftIn(wh[1]),
+      hardware: hwTitles(d), good_to_know: notes(d)
+    };
+  }
+
   /* ---------- the quote email ---------- */
   function doorHeading(d, i, n) {
     return "DOOR " + (i + 1) + " OF " + n + (d.loc ? ": " + d.loc.toUpperCase() : "") + ((d.qty || 1) > 1 ? " (QUANTITY " + d.qty + ")" : "");
@@ -218,6 +232,6 @@
     sel: sel, hwTitle: hwTitle, hwTitles: hwTitles, sizeText: sizeText, notes: notes, rows: rows, oneLine: oneLine,
     isComplete: isComplete, isValid: isValid, totalCount: totalCount, previewSel: previewSel,
     encode: encode, decode: decode, buildPayload: buildPayload, requestPayload: requestPayload, unpackContact: unpackContact,
-    newRef: newRef, subject: subject, emailBody: emailBody, doorText: doorText, doorHeading: doorHeading, cleanText: cleanText
+    newRef: newRef, record: record, subject: subject, emailBody: emailBody, doorText: doorText, doorHeading: doorHeading, cleanText: cleanText
   };
 })(window);

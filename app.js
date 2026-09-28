@@ -106,7 +106,7 @@
   var clone = function (d) { var o = {}; for (var k in d) o[k] = d[k]; o.hardware = (d.hardware || []).slice(); return o; };
   var state = blank(), step = 1, MAX = 4;
   var doors = [], editing = -1, view = "steps";
-  var lastAction = "", photoSaved = false, reqRef = "", reqSig = "", lastMail = null, lastRemoved = null, drawRev = 0;
+  var lastAction = "", photoSaved = false, reqRef = "", reqSig = "", reqSaved = false, reqTries = 0, lastRemoved = null, drawRev = 0;
   var work = $("#door-builder");
   var btnNext = $("#b-next"), btnBack = $("#b-back"), btnCancel = $("#b-cancel"), btnSave = $("#b-save");
   var notice = $("#builder-notice"), live = $("#builder-live");
@@ -455,36 +455,62 @@
     if (!okReach) { var p = $("#q-phone"); (p.getAttribute("aria-invalid") === "true" ? p : $("#q-email")).focus(); return; }
     var c = S.unpackContact({ n: $("#q-name").value, co: $("#q-company").value, p: $("#q-phone").value, e: $("#q-email").value, a: $("#q-addr").value, tl: $("#q-when").value, x: $("#q-msg").value });
     var sig = JSON.stringify([S.buildPayload(doors), c]);
-    if (!reqRef || sig !== reqSig) { reqRef = S.newRef(); reqSig = sig; }
+    if (!reqRef || sig !== reqSig || reqSaved) { reqRef = S.newRef(); reqSig = sig; reqSaved = false; reqTries = 0; }
+    sendRequest(c);
+  });
+  /* The request goes straight to our office's quote inbox (a database table the website can add to but never read). */
+  var QUOTE_API = { url: "https://esrwugfaqlwttxmfkpkx.supabase.co/rest/v1/quote_requests", key: "sb_publishable_aOUQv3tbsDOP4eTDjbyA6w_RKZBxx8K" };
+  var sending = false;
+  function sendErr(msg) {
+    var box = $("#q-send-err");
+    if (!msg) { box.hidden = true; box.innerHTML = ""; return; }
+    box.innerHTML = msg; box.hidden = false;
+  }
+  function sendRequest(c) {
+    if (sending) return;
+    var btn = $("#q-submit"), photo = photoSaved && $("#q-photo-yes").checked;
     var url = BASE + "request.html#b=" + S.encode(S.requestPayload(doors, c, reqRef, new Date()));
-    var photo = photoSaved && $("#q-photo-yes").checked;
-    var subject = S.subject(doors, c, reqRef), body = S.emailBody(doors, c, reqRef, url, { photo: photo, buildUrl: BASE + "#build=" + S.encode(S.buildPayload(doors, reqRef)) });
-    var href = "mailto:" + EMAIL + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
-    lastMail = { subject: subject, body: body, href: href, url: url };
-    $("#sent-mailto").href = href;
+    var buildUrl = BASE + "#build=" + S.encode(S.buildPayload(doors, reqRef));
+    var notes = c.x + (photo ? (c.x ? "\n\n" : "") + "Photo: I have a photo of the new door on my building. Please ask me for it." : "");
+    var row = {
+      reference: reqRef, name: c.n, company: c.co || null, phone: c.p || null, email: c.e || null,
+      project_location: c.a || null, timeline: c.tl || null, notes: notes || null,
+      doors: doors.map(S.record), door_count: doors.length, total_quantity: S.totalCount(doors),
+      build_link: buildUrl, office_link: url, user_agent: String(navigator.userAgent || "").slice(0, 400)
+    };
+    sending = true; sendErr("");
+    btn.disabled = true; btn.setAttribute("aria-busy", "true"); btn.textContent = "Sending\u2026";
+    var retry = reqTries > 0; reqTries++;
+    var ctl = window.AbortController ? new AbortController() : null, timer = setTimeout(function () { if (ctl) ctl.abort(); }, 20000);
+    var done = function () { clearTimeout(timer); sending = false; btn.disabled = false; btn.removeAttribute("aria-busy"); btn.textContent = "Send my quote request"; };
+    fetch(QUOTE_API.url, {
+      method: "POST", mode: "cors", credentials: "omit", signal: ctl ? ctl.signal : undefined,
+      headers: { "Content-Type": "application/json", apikey: QUOTE_API.key, Prefer: "return=minimal" },
+      body: JSON.stringify(row)
+    }).then(function (r) {
+      // 409 on a retry: the first try reached us even though its answer got lost, so the request is saved
+      if (r.ok || (r.status === 409 && retry)) { done(); sent(c, url, photo); return; }
+      if (r.status === 409) { done(); reqRef = S.newRef(); reqTries = 0; sendRequest(c); return; } // (reference already taken: pick another)
+      throw new Error("HTTP " + r.status);
+    }).catch(function () {
+      done();
+      sendErr("<strong>We couldn't send your request just now.</strong> Please check your connection and press <strong>Send my quote request</strong> again. Your doors and details are still here. Or call us at <a href=\"tel:+12707803235\">" + PHONE + "</a>.");
+      $("#q-send-err").scrollIntoView({ block: "nearest" });
+    });
+  }
+  function sent(c, url, photo) {
+    reqSaved = true;
     $("#sent-view").href = url;
     $("#sent-ref").textContent = reqRef;
     $("#sent-name").textContent = c.n ? ", " + c.n.split(" ")[0] : "";
     $("#sent-photo").hidden = !photo;
-    $("#sent-copied").textContent = "";
     showView("sent");
     reveal(work);
     focusEl($("#sent-title"));
-    window.location.href = href;
-  });
-  $("#sent-copy").addEventListener("click", function () {
-    if (!lastMail) return;
-    var text = "To: " + EMAIL + "\nSubject: " + lastMail.subject + "\n\n" + lastMail.body;
-    var done = function (ok) { $("#sent-copied").textContent = ok ? "Copied. Paste it into a new email to " + EMAIL + " and press Send." : "Couldn't copy automatically. Please call us at " + PHONE + "."; };
-    var fallback = function () {
-      var ta = document.createElement("textarea"); ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select();
-      var ok = false; try { ok = document.execCommand("copy"); } catch (err) { ok = false; } ta.remove(); done(ok);
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { done(true); }, fallback); else fallback();
-  });
+  }
   $("#sent-back").addEventListener("click", function () { showBuilt(); });
   $("#sent-new").addEventListener("click", function () {
-    doors = []; reqRef = ""; reqSig = ""; lastMail = null; photoSaved = false; form.reset();
+    doors = []; reqRef = ""; reqSig = ""; reqSaved = false; reqTries = 0; photoSaved = false; form.reset(); sendErr("");
     $$(".is-invalid", form).forEach(function (f) { f.classList.remove("is-invalid"); });
     $("#built-banner").hidden = true; startDoor(); focusStep();
   });
