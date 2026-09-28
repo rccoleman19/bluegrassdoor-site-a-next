@@ -213,13 +213,15 @@
     btnBack.hidden = step === 1;
     btnCancel.hidden = !doors.length;
     btnCancel.textContent = editing >= 0 ? "Cancel changes" : "Back to my doors";
-    btnNext.innerHTML = step < MAX ? "Next &rarr;" : editing >= 0 ? "Save changes" : "See my door &rarr;";
+    var nextLabel = step < MAX ? "Next &rarr;" : editing >= 0 ? "Save changes" : "See my door &rarr;";
+    if (btnNext.getAttribute("data-label") !== nextLabel) { btnNext.innerHTML = nextLabel; btnNext.setAttribute("data-label", nextLabel); } // (never swap nodes under a pointer that is pressing Next)
     updateNext();
     if (keep) { var again = $('[data-field="' + keep[0] + '"] .opt[data-value="' + CSS.escape(keep[1]) + '"]'); if (again) focusEl(again); }
     document.dispatchEvent(new CustomEvent("doorbuilder:change", { detail: { step: step, state: state, rows: S.rows(state), hwLabels: S.hwTitles(state) } })); // live door preview (read-only)
   }
   function updateNext() {
     btnNext.disabled = !stepOk(step);
+    btnNext.parentElement.classList.toggle("is-ready", !btnNext.disabled || editing >= 0);
     btnSave.hidden = !(editing >= 0 && step < MAX);
     btnSave.disabled = !S.isValid(state);
     showNotice();
@@ -264,7 +266,10 @@
   });
   [sizeW, sizeH].forEach(function (el) {
     el.addEventListener("input", function () { state.cw = sizeW.value; state.ch = sizeH.value; touched(); updateNext(); renderProgress(); });
-    el.addEventListener("change", function () { renderStep(); });
+    el.addEventListener("change", function () { // re-draw only if the size note changes (the tap that blurred this field may be on Next)
+      var shown = $('[data-field="size"] .opt[data-value="custom"] .opt__why'), want = R ? R.sizeNote(sel(), "custom") : "";
+      if ((shown ? shown.textContent : "") !== (want || "")) renderStep();
+    });
   });
   btnNext.addEventListener("click", function () {
     if (btnNext.disabled) return;
@@ -520,8 +525,8 @@
     return true;
   }
   window.addEventListener("hashchange", function () { if (openFromHash()) { reveal(work, true); focusEl($("#built-title")); } });
-  openFromHash();
   renderStep(); // (with a shared link open, this keeps the hidden steps and the preview in a clean state)
+  openFromHash();
 
 
   /* ---------- Help chat ---------- */
