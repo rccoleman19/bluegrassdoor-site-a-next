@@ -411,7 +411,7 @@
       return '<li class="qdoor"><div class="qdoor__draw">' + drawing(d, "q" + drawRev + "-" + i, "Drawing of door " + (i + 1)) + "</div>" +
         '<div class="qdoor__text"><strong>Door ' + (i + 1) + (d.loc ? ": " + esc(d.loc) : "") + "</strong>" +
         "<span>" + esc(S.typeLabel(d.type)) + ((d.qty || 1) > 1 ? ' <b class="qdoor__qty">&times; ' + d.qty + "</b>" : "") + "</span>" +
-        "<small>" + esc(S.oneLine(d)) + "</small><small>" + esc(hw) + "</small>" +
+        "<small>" + esc(S.oneLine(d).replace(/ \u00d7 /g, "\u00a0\u00d7\u00a0").replace(/(\d") ([WH])\b/g, "$1\u00a0$2")) + "</small><small>" + esc(hw) + "</small>" +
         (S.notes(d).length ? '<small class="qdoor__notes">' + S.notes(d).length + " good-to-know note" + (S.notes(d).length > 1 ? "s" : "") + " included</small>" : "") +
         "</div></li>";
     }).join("");
