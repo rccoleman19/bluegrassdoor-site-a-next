@@ -106,6 +106,7 @@
   var clone = function (d) { var o = {}; for (var k in d) o[k] = d[k]; o.hardware = (d.hardware || []).slice(); return o; };
   var state = blank(), step = 1, MAX = 4;
   var doors = [], editing = -1, view = "steps";
+  var CC = window.CodeChecks, code = { juris: CC ? CC.DEFAULT_JURIS : "warren", picked: false, fromAddr: false, use: null, all: false };
   var lastAction = "", photoSaved = false, reqRef = "", reqSig = "", reqSaved = false, reqTries = 0, lastRemoved = null, drawRev = 0;
   var work = $("#door-builder");
   var btnNext = $("#b-next"), btnBack = $("#b-back"), btnCancel = $("#b-cancel"), btnSave = $("#b-save");
@@ -352,6 +353,55 @@
           "</div>" +
         "</div></li>";
     }).join("");
+    renderCodes();
+  }
+  /* ---------- local & state code suggestions (code-checks.js). Optional: nothing here blocks the quote ---------- */
+  function codeResult() { return CC ? CC.evaluate(doors, { juris: code.juris, use: code.use }) : null; }
+  var SHOW_FIRST = 3;
+  function renderCodes() {
+    var box = $("#codes"); if (!box) return;
+    if (!CC || !doors.length) { box.hidden = true; return; }
+    box.hidden = false;
+    var sel = $("#code-juris");
+    if (!sel.options.length) sel.innerHTML = CC.JURIS.map(function (j) { return '<option value="' + j.v + '">' + esc(j.t) + "</option>"; }).join("");
+    sel.value = code.juris;
+    $("#code-juris-hint").textContent = code.fromAddr && !code.picked ? "Picked from the project address you typed. Change it if that's not right." :
+      code.juris === CC.DEFAULT_JURIS ? "Most of our jobs are in Warren County, KY. Change it if your project is elsewhere." : "Change it any time.";
+    var res = codeResult(), total = doors.length;
+    $$(".codes__use button").forEach(function (b) { b.setAttribute("aria-pressed", code.use === b.getAttribute("data-use") ? "true" : "false"); });
+    $("#code-use-hint").textContent = code.use ? "" : res.useInferred ? "Showing business notes because of the door types. Tap Home if it's a house." : "Not sure? We're showing notes for both. Tap Business or Home to narrow them down.";
+    var many = res.items.length > SHOW_FIRST + 1 && !code.all;
+    $("#code-list").innerHTML = res.items.map(function (it, k) {
+      var dl = CC.doorsLabel(it, total);
+      return '<li data-code="' + esc(it.id) + '"' + (many && k >= SHOW_FIRST ? " hidden" : "") + ">" + (dl ? '<span class="codes__doors">' + esc(dl) + "</span>" : "") + esc(it.text) +
+        '<span class="codes__src">Source: ' + it.sources.map(function (x) { return '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.cite) + "</a>"; }).join(" &middot; ") + "</span></li>";
+    }).join("");
+    var more = $("#code-more");
+    more.hidden = res.items.length <= SHOW_FIRST + 1;
+    more.textContent = code.all ? "Show fewer" : "Show all " + res.items.length + " suggestions";
+    more.setAttribute("aria-expanded", code.all ? "true" : "false");
+  }
+  if ($("#codes")) {
+    $("#code-juris").addEventListener("change", function () { code.juris = this.value; code.picked = true; renderCodes(); say($("#code-live"), "Suggestions updated for " + CC.jurisOf(code.juris).t + "."); });
+    $(".codes__use").addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-use]"); if (!b) return;
+      var u = b.getAttribute("data-use"); code.use = code.use === u ? null : u; renderCodes();
+      say($("#code-live"), code.use ? "Showing suggestions for a " + (code.use === "home" ? "home" : "business") + "." : "Showing suggestions for both.");
+    });
+    $("#code-more").addEventListener("click", function () { code.all = !code.all; renderCodes(); });
+  }
+  // until the customer picks a location, the project address (quote form) can set it
+  function codeFromAddr() {
+    if (!CC || code.picked) return;
+    var g = CC.guessJuris($("#q-addr").value);
+    if (g) { code.juris = g; code.fromAddr = true; } else if (code.fromAddr) { code.juris = CC.DEFAULT_JURIS; code.fromAddr = false; }
+    updateQuoteCodes();
+  }
+  function updateQuoteCodes() {
+    var el = $("#q-codes"); if (!el || !CC) return;
+    var n = doors.length ? codeResult().items.length : 0;
+    el.hidden = !n;
+    el.textContent = n + " local & state code suggestion" + (n === 1 ? "" : "s") + " included (" + CC.jurisOf(code.juris).t + ")";
   }
   function setQty(i, q) {
     q = Math.max(1, Math.min(500, parseInt(q, 10) || 1));
@@ -381,9 +431,10 @@
       ban.hidden = false; focusEl($("#undo-remove"));
     }
   });
+  var codeTimer = 0;
   $("#door-list").addEventListener("input", function (e) {
     var t = e.target;
-    if (t.hasAttribute("data-loc")) { doors[+t.getAttribute("data-loc")].loc = S.cleanText(t.value, 60); touched(); }
+    if (t.hasAttribute("data-loc")) { doors[+t.getAttribute("data-loc")].loc = S.cleanText(t.value, 60); touched(); clearTimeout(codeTimer); codeTimer = setTimeout(renderCodes, 400); }
   });
   $("#door-list").addEventListener("change", function (e) {
     var t = e.target; if (t.hasAttribute("data-qty-input")) setQty(+t.getAttribute("data-qty-input"), t.value);
@@ -416,10 +467,12 @@
         "</div></li>";
     }).join("");
     $("#q-photo").hidden = !photoSaved;
+    updateQuoteCodes();
     showView("quote");
     reveal(work);
     focusEl($("#quote-title"));
   }
+  $("#q-addr").addEventListener("input", codeFromAddr);
   $("#q-back").addEventListener("click", function () { showBuilt(); });
   $("#q-edit").addEventListener("click", function () { showBuilt(); });
 
@@ -469,7 +522,7 @@
   function sendRequest(c) {
     if (sending) return;
     var btn = $("#q-submit"), photo = photoSaved && $("#q-photo-yes").checked;
-    var url = BASE + "request.html#b=" + S.encode(S.requestPayload(doors, c, reqRef, new Date()));
+    var url = BASE + "request.html#b=" + S.encode(S.requestPayload(doors, c, reqRef, new Date(), { j: code.juris, u: code.use }));
     var buildUrl = BASE + "#build=" + S.encode(S.buildPayload(doors, reqRef));
     var notes = c.x + (photo ? (c.x ? "\n\n" : "") + "Photo: I have a photo of the new door on my building. Please ask me for it." : "");
     var row = {
@@ -478,6 +531,7 @@
       doors: doors.map(S.record), door_count: doors.length, total_quantity: S.totalCount(doors),
       build_link: buildUrl, office_link: url, user_agent: String(navigator.userAgent || "").slice(0, 400)
     };
+    if (CC) row.code_checks = CC.record(codeResult(), doors.length);
     sending = true; sendErr("");
     btn.disabled = true; btn.setAttribute("aria-busy", "true"); btn.textContent = "Sending\u2026";
     var retry = reqTries > 0; reqTries++;

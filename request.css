@@ -89,3 +89,14 @@ h1, h2, h3 { font-family: var(--head); color: var(--ink); line-height: 1.05; mar
   .rq-draw { min-height: 220px; border-right: 1px solid var(--line); border-bottom: 0; }
   a { color: inherit; text-decoration: none; }
 }
+
+/* local & state code suggestions (code-checks.js) */
+.rq-codes { margin-top: 20px; padding: 18px 20px; background: #f5f8ff; border: 1px solid #d5e0fb; }
+.rq-codes h2 { margin: 0 0 6px; }
+.rq-codes__note { margin: 0 0 12px; font-size: .92rem; color: #4a5568; }
+.rq-codes ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.rq-codes li { padding: 10px 12px; border-left: 3px solid #6b86c9; background: #fff; border-radius: 8px; font-size: .95rem; line-height: 1.5; }
+.rq-codes__doors { display: inline-block; padding: 1px 8px; border-radius: 999px; background: #e6edff; color: #3b5bab; font-size: .8rem; font-weight: 700; }
+.rq-codes__src { display: block; margin-top: 4px; font-size: .85rem; color: #5a6477; }
+.rq-codes__src a { overflow-wrap: anywhere; }
+@media print { .rq-codes { break-inside: avoid; } .rq-codes__src a::after { content: " (" attr(href) ")"; font-size: .75rem; } }

@@ -392,7 +392,7 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 .hb { background: #fff; }
 .hb__band { position: relative; background: var(--navy); color: #fff; overflow: hidden; }
 .hb__photo { position: relative; height: 92px; }
-.hb__photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 64%; }
+.hb__photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; }
 .hb__photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,29,68,0) 30%, rgba(11,29,68,.75) 72%, var(--navy) 100%); }
 .hb__intro { position: relative; margin-top: -26px; padding-bottom: 16px; }
 .hb .eyebrow { margin-bottom: 8px; font-size: .72rem; }
@@ -579,13 +579,22 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 
 /* ---------- desktop ---------- */
 @media (min-width: 1024px) {
-  .hb__photo { width: 44%; }
-  .hb__photo img { object-position: 50% 72%; }
-  /* keep clear of the photo (44% of the full band), measured from the centred 1200px column, not the band edge */
-  .hb__intro { padding-top: 30px; padding-bottom: 30px; padding-right: calc(44% - max(0px, (100% - 1200px) / 2) + 12px); }
+  /* Hero band. The blue panel is only as wide as the one-line headline needs (never less than 28% of the band);
+     the crew photo fills the rest. --h1 drives both the headline size and the panel width. */
+  .hb__band { --h1: clamp(1.75rem, 2.2vw, 2rem); --col: max(0px, (100% - 1200px) / 2); --panel: max(28%, calc(var(--col) + 20px + var(--h1) * 16 + 28px)); }
+  .hb__photo { width: calc(100% - var(--panel)); }
+  /* crew photo: about 1.38x the size it used to be (then 44% of the band, fitted to its width), the group centred in the
+     photo area, heads never cropped (they sit 45% down the photo; the group's middle is 63% down, 47.7% across) */
+  .hb__photo img { --iw: 60.7vw; --ih: calc(var(--iw) * .75); position: absolute; width: var(--iw); height: var(--ih); max-width: none; object-fit: cover;
+    left: clamp(calc(100% - var(--iw)), calc(50% - var(--iw) * .477), 0px);
+    top: clamp(calc(100% - var(--ih)), calc(50% - var(--ih) * .59), 0px); }
+  /* keep clear of the photo, measured from the centred 1200px column, not the band edge */
+  /* tall enough that every head and face fits at this zoom (they span 26% of the photo's height) */
+  .hb__intro { padding-top: 30px; padding-bottom: 30px; padding-right: calc(100% - var(--panel) - var(--col) + 12px);
+    min-height: max(250px, 16vw); display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
   .hb__eb-extra { display: inline; }
   .hb__intro .eyebrow { white-space: nowrap; max-width: 100%; }
-  .hb h1 { font-size: clamp(2.6rem, 3.3vw, 3rem); }
+  .hb h1 { font-size: var(--h1); white-space: nowrap; }
   .hb h1 span { font-size: .6em; margin-top: 6px; }
   .hb__promise { font-size: 1.12rem; }
   .hb__work { padding-top: 28px; padding-bottom: 80px; }
@@ -654,3 +663,25 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 .dp-ask { display: none; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--navy); color: #fff; font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
 .dp-ask svg { width: 16px; height: 16px; fill: none; stroke: var(--amber); stroke-width: 2; }
 .chat-tucked .dp-ask { display: inline-flex; }
+
+/* Local & state code suggestions (code-checks.js): information, never an error */
+.codes { margin-top: 22px; padding: 16px; border-radius: 14px; background: #f5f8ff; border: 1px solid #d5e0fb; }
+.codes__title { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; font-family: var(--head); font-size: 1.25rem; color: var(--navy); }
+.codes__i { flex: none; width: 22px; height: 22px; border-radius: 50%; background: #e6edff; box-shadow: inset 0 0 0 1.5px #6b86c9; color: #3b5bab; font: 800 14px/22px Georgia, serif; text-align: center; }
+.codes__lead { margin: 0 0 12px; font-size: .95rem; color: var(--text); line-height: 1.5; }
+.codes__ctl { display: grid; gap: 12px; margin-bottom: 12px; }
+.codes__field label, .codes__label { display: block; font-weight: 700; font-size: .92rem; margin-bottom: 6px; color: var(--ink); }
+.codes__field select { width: 100%; min-height: 46px; }
+.codes__hint { margin: 6px 0 0; font-size: .88rem; color: var(--muted); line-height: 1.4; }
+.codes__use { display: flex; gap: 8px; }
+.codes__use button { flex: 1 1 0; min-height: 46px; border-radius: 10px; border: 1.5px solid #c9d6f3; background: #fff; color: var(--blue); font: inherit; font-weight: 700; cursor: pointer; }
+.codes__use button[aria-pressed="true"] { background: var(--blue); border-color: var(--blue); color: #fff; }
+.codes__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.codes__list li { padding: 12px 12px 12px 14px; border-radius: 10px; background: #fff; border-left: 3px solid #6b86c9; font-size: .93rem; line-height: 1.5; color: var(--text); }
+.codes__list li[hidden] { display: none; }
+.codes__doors { display: inline-block; margin-right: 6px; padding: 1px 8px; border-radius: 999px; background: #e6edff; color: #3b5bab; font-size: .8rem; font-weight: 700; }
+.codes__src { display: block; margin-top: 6px; font-size: .85rem; color: var(--muted); }
+.codes__src a { color: var(--blue); font-weight: 600; overflow-wrap: anywhere; }
+.codes__more { margin-top: 8px; }
+.qcodes { margin: 10px 0 0; font-size: .88rem; color: #3b5bab; font-weight: 600; }
+@media (min-width: 640px) { .codes { padding: 20px; } .codes__ctl { grid-template-columns: 1.3fr 1fr; align-items: start; } }

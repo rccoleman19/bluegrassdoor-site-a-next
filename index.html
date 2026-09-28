@@ -17,8 +17,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="preload" as="image" href="images/team-in-front-of-shop.jpg">
-  <link rel="stylesheet" href="styles.css?v=next4-cp1">
+  <link rel="preload" as="image" href="images/crew-hero-enhanced.jpg">
+  <link rel="stylesheet" href="styles.css?v=next6">
   <link rel="stylesheet" href="door-preview.css?v=next3">
   <link rel="stylesheet" href="door-visualize.css?v=next3">
   <script type="application/ld+json">
@@ -110,7 +110,7 @@
     <section class="hb" id="builder" aria-labelledby="hero-title">
       <div class="hb__band">
         <div class="hb__photo">
-          <img src="images/team-in-front-of-shop.jpg" width="960" height="720" fetchpriority="high" alt="The Bluegrass Commercial Door &amp; More crew in blue company shirts in front of the shop in Bowling Green, Kentucky">
+          <img src="images/crew-hero-enhanced.jpg" width="1920" height="1440" fetchpriority="high" alt="The Bluegrass Commercial Door &amp; More crew in blue company shirts in front of the shop in Bowling Green, Kentucky">
         </div>
         <div class="wrap hb__intro">
           <p class="eyebrow eyebrow--light">Bluegrass Commercial Door &amp; More<span class="hb__eb-extra"> &middot; Family owned</span></p>
@@ -178,6 +178,28 @@
               <button class="btn btn--outline" type="button" id="b-add"><span aria-hidden="true" class="plus">+</span> Add another door</button>
               <p class="built__fine">Several openings on one job? Add each door, or change &ldquo;How many&rdquo; for identical ones. They all go into one quote request.</p>
             </div>
+            <section class="codes" id="codes" aria-labelledby="codes-title">
+              <h3 class="codes__title" id="codes-title"><span class="codes__i" aria-hidden="true">i</span>Local &amp; state code: worth checking</h3>
+              <p class="codes__lead">A few things your inspector may look at for these doors, each with the code section and a link to the source. Worth checking with your inspector or our office. <strong>Suggestions only. Your local inspector has the final say.</strong></p>
+              <div class="codes__ctl">
+                <div class="codes__field">
+                  <label for="code-juris">Where&rsquo;s the job?</label>
+                  <select id="code-juris"></select>
+                  <p class="codes__hint" id="code-juris-hint">Most of our jobs are in Warren County, KY. Change it if your project is elsewhere.</p>
+                </div>
+                <div class="codes__field">
+                  <span class="codes__label" id="code-use-label">Business or home?</span>
+                  <div class="codes__use" role="group" aria-labelledby="code-use-label">
+                    <button type="button" data-use="business" aria-pressed="false">Business</button>
+                    <button type="button" data-use="home" aria-pressed="false">Home</button>
+                  </div>
+                  <p class="codes__hint" id="code-use-hint"></p>
+                </div>
+              </div>
+              <ul class="codes__list" id="code-list"></ul>
+              <button type="button" class="btn btn--text codes__more" id="code-more" aria-controls="code-list" hidden></button>
+              <p class="sr-only" id="code-live" aria-live="polite"></p>
+            </section>
             <div class="built__cta">
               <p class="built__count" id="built-count">1 door, ready to quote</p>
               <button class="btn btn--accent btn--lg" type="button" id="b-quote"><span id="b-quote-text">Get a quote on this door</span> <span aria-hidden="true">&rarr;</span></button>
@@ -252,6 +274,7 @@
               <aside class="qside" aria-labelledby="qside-title">
                 <h3 id="qside-title">Attached to your request</h3>
                 <ul class="qdoors" id="q-doors"></ul>
+                <p class="qcodes" id="q-codes" hidden></p>
                 <button class="btn btn--text qside__edit" type="button" id="q-edit">Change something</button>
               </aside>
             </div>
@@ -641,9 +664,10 @@
 
   <script src="door-preview.js?v=next4"></script>
   <script src="builder-rules.js?v=next3"></script>
-  <script src="door-spec.js?v=next4"></script>
-  <script src="app.js?v=next4"></script>
-  <script src="chat-place.js?v=cp1"></script>
+  <script src="door-spec.js?v=next5"></script>
+  <script src="code-checks.js?v=cc1"></script>
+  <script src="app.js?v=next5"></script>
+  <script src="chat-place.js?v=cp2"></script>
   <script src="door-visualize.js?v=next3"></script>
 </body>
 </html>

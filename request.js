@@ -68,6 +68,19 @@
     h.push("</ol>");
     if (data.dropped) h.push('<p class="rq-warn">' + data.dropped + " door" + (data.dropped > 1 ? "s" : "") + " in this link couldn\u2019t be read. Please call the customer to confirm.</p>");
     h.push("</section></div>");
+    var CC = window.CodeChecks;
+    if (CC && data.juris && CC.jurisOf(data.juris)) {
+      var res = CC.evaluate(doors, { juris: data.juris, use: data.use || null });
+      if (res.items.length) {
+        h.push('<section class="rq-card rq-codes" aria-labelledby="rq-codes-h"><h2 id="rq-codes-h">Local &amp; state code: worth checking</h2>' +
+          '<p class="rq-codes__note">' + esc(res.note) + " Location: <strong>" + esc(res.jurisLabel) + "</strong> &middot; Building: <strong>" + esc(CC.useText(res)) + "</strong></p><ul>" +
+          res.items.map(function (it) {
+            var dl = CC.doorsLabel(it, n);
+            return '<li data-code="' + esc(it.id) + '">' + (dl ? '<span class="rq-codes__doors">' + esc(dl) + "</span> " : "") + esc(it.text) +
+              '<span class="rq-codes__src">Source: ' + it.sources.map(function (x) { return '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.cite) + "</a>"; }).join(" &middot; ") + "</span></li>";
+          }).join("") + "</ul></section>");
+      }
+    }
     root.innerHTML = h.join("");
     document.getElementById("rq-print").addEventListener("click", function () { window.print(); });
   }

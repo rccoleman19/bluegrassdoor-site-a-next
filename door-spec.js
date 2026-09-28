@@ -156,11 +156,16 @@
     var doors = [], dropped = 0;
     raw.d.slice(0, 40).forEach(function (o) { var d = unpackDoor(o); if (d) doors.push(d); else dropped++; });
     var t = +raw.ts; var time = isFinite(t) && t > 1.6e9 && t < 4.1e9 ? new Date(t * 1000) : null;
-    return { ref: validRef(raw.r), time: time, doors: doors, contact: raw.c ? unpackContact(raw.c) : null, dropped: dropped };
+    return { ref: validRef(raw.r), time: time, doors: doors, contact: raw.c ? unpackContact(raw.c) : null, dropped: dropped,
+      juris: typeof raw.j === "string" && /^[a-z]{2,8}$/.test(raw.j) ? raw.j : "", use: raw.u === "business" || raw.u === "home" ? raw.u : "" };
   }
   function buildPayload(doors, ref) { var p = { v: 1, d: doors.map(packDoor) }; if (ref) p.r = ref; return p; }
-  function requestPayload(doors, contact, ref, time) {
-    var p = buildPayload(doors, ref); p.ts = Math.round((time || new Date()).getTime() / 1000); p.c = packContact(contact); return p;
+  /* extra: { j: job location id, u: "business" | "home" } for the local & state code suggestions (code-checks.js) */
+  function requestPayload(doors, contact, ref, time, extra) {
+    var p = buildPayload(doors, ref); p.ts = Math.round((time || new Date()).getTime() / 1000); p.c = packContact(contact);
+    if (extra && /^[a-z]{2,8}$/.test(extra.j || "")) p.j = extra.j;
+    if (extra && (extra.u === "business" || extra.u === "home")) p.u = extra.u;
+    return p;
   }
   function newRef() {
     var A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789", out = "", buf = new Uint32Array(6);
