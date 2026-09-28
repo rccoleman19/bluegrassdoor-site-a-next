@@ -581,8 +581,10 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 @media (min-width: 1024px) {
   .hb__photo { width: 44%; }
   .hb__photo img { object-position: 50% 72%; }
-  .hb__intro { padding-top: 30px; padding-bottom: 30px; padding-right: 44%; }
+  /* keep clear of the photo (44% of the full band), measured from the centred 1200px column, not the band edge */
+  .hb__intro { padding-top: 30px; padding-bottom: 30px; padding-right: calc(44% - max(0px, (100% - 1200px) / 2) + 12px); }
   .hb__eb-extra { display: inline; }
+  .hb__intro .eyebrow { white-space: nowrap; max-width: 100%; }
   .hb h1 { font-size: clamp(2.6rem, 3.3vw, 3rem); }
   .hb h1 span { font-size: .6em; margin-top: 6px; }
   .hb__promise { font-size: 1.12rem; }
@@ -641,3 +643,14 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
   .header__phone svg { width: 32px; height: 32px; padding: 7px; }
   .header__cta { padding-left: 16px; padding-right: 16px; }
 }
+
+/* Help button steps around door drawings (chat-place.js) */
+.chat.chat--mini .chat__fab { width: 52px; padding: 0; justify-content: center; }
+.chat.chat--mini .chat__fab span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.chat.chat--left { right: auto; left: 24px; }
+.chat.chat--left .chat__panel { right: auto; left: 24px; }
+.chat.chat--tucked:not(.is-open) .chat__fab { visibility: hidden; }
+.dp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; }
+.dp-ask { display: none; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 999px; background: var(--navy); color: #fff; font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
+.dp-ask svg { width: 16px; height: 16px; fill: none; stroke: var(--amber); stroke-width: 2; }
+.chat-tucked .dp-ask { display: inline-flex; }
