@@ -13,7 +13,7 @@ var ROOT = __dirname;
 var GREETING = "Hi, welcome in. I'm Dory. I can help with doors, frames, and hardware. What would you like to know?";
 var TITLE = "Dory";
 var PHONE = "270-780-3235";
-var NOTE = "This chat is answered by AI, not someone in the office. Please don't share private info. For anything urgent, call " + PHONE + ".";
+var NOTE = "Hi, I'm an AI helper for Bluegrass Commercial Door & More.\nPlease don't share private info.\nFor anything urgent, call " + PHONE + ".";
 var EMAIL = "sonya@bluegrassdoor.com";
 var BANNED = ["twin", "demo", "bake-off", "prototype", "test", "placeholder", "sample", "mock"];
 var fails = [];
@@ -41,8 +41,8 @@ function sourceChecks() {
   });
   if (!fails.some(function (f) { return f.indexOf("DOORY leftover") === 0; })) pass("visitor pages do not say DOORY");
 
-  if (app.indexOf("This chat is answered by AI, not someone in the office. Please don't share private info. For anything urgent, call ") < 0) fail("chat note", "new note missing from app.js");
-  else if (/Answers are automated|\u2014/.test(app)) fail("chat note", "old note wording is still in app.js");
+  if (app.indexOf("Hi, I'm an AI helper for Bluegrass Commercial Door & More.\\nPlease don't share private info.\\nFor anything urgent, call ") < 0) fail("chat note", "new note missing from app.js");
+  else if (/not someone in the office|Answers are automated|\u2014/.test(app)) fail("chat note", "old note wording is still in app.js");
   else pass("chat note copy is in the opener");
 
   if (!/setTimeout\(function \(\) \{ ctl\.abort\(\); \}, 8000\)/.test(app)) fail("8s give-up", "abort timer is not 8000");
@@ -202,9 +202,10 @@ async function browserChecks(pageUrl) {
   else if (title.transform === "uppercase" || /DOORY|\u2014|\bAI\b/.test(title.title + " " + title.label)) fail("chat title", "title still says DOORY, or uses an em dash or AI");
   else pass("panel title reads Dory");
 
-  var note = await js("(document.querySelector('#chat-log .chat__note') || {}).textContent || ''");
-  if (note !== NOTE) fail("chat note", JSON.stringify(note));
-  else if (/automated|\u2014/.test(note)) fail("chat note", "old wording is showing");
+  var note = await js("(function () { var n = document.querySelector('#chat-log .chat__note'); return { text: (n || {}).textContent || '', lines: n ? getComputedStyle(n).whiteSpace : '' }; })()");
+  if (note.text !== NOTE) fail("chat note", JSON.stringify(note.text));
+  else if (note.lines !== "pre-line" && note.lines !== "pre-wrap") fail("chat note", "the two reminders are not on their own lines");
+  else if (/automated|\u2014|not someone in the office/.test(note.text)) fail("chat note", "old wording is showing");
   else pass("note under the greeting");
 
   var shot = await cdp.send("Page.captureScreenshot", { format: "png" });
