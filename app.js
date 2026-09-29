@@ -670,7 +670,7 @@
     chatPanel.hidden = false; chatWrap.classList.add("is-open"); chatOpenBtn.setAttribute("aria-expanded", "true");
     if (!started) {
       started = true;
-      bot("Hi there! Thanks for visiting <strong>Bluegrass Commercial Door &amp; More</strong>. What can we help you with today?");
+      bot("Hi, welcome in. We're <strong>Bluegrass Commercial Door &amp; More</strong>, and we can help with doors, frames, and hardware. What would you like to know?");
       history = [];
       var note = document.createElement("p"); note.className = "chat__note";
       note.style.cssText = "margin:0;align-self:center;max-width:92%;font-size:.8rem;line-height:1.35;color:#5b6780;text-align:center";
@@ -712,32 +712,41 @@
   AI_ACTIONS.call = CALL; AI_ACTIONS.email = MAIL;
   var INTENTS = [
     { k: /(emergenc|broken|break[- ]?in|won'?t (close|lock|latch|open)|stuck|damag|urgent|asap|right away|kicked|smash|repair|fix)/i, r: function () {
-      bot("Sorry to hear that! For a broken, damaged or unsecured door, please <strong>call our office right away at " + PHONE + "</strong> so we can get you taken care of as quickly as possible.", [CALL, MAIL]); } },
+      bot("Sorry you're dealing with that. For a broken, damaged, or unsecured door, please call our office at <strong>" + PHONE + "</strong>. We'll help you get it taken care of.", [CALL, MAIL]); } },
     { k: /(flag ?pole|flag)/i, r: function () {
-      bot("Yes, we install flagpoles! Our professionally installed flagpoles are built to stand tall through the toughest weather, so you can proudly fly your American and state flags every day. Give us a call or send us an email to talk about yours.", [CALL, MAIL]); } },
+      bot("Yes, we install flagpoles. They're built to stand tall in tough weather, so you can fly your American and state flags. When you'd like to talk about yours, call us at " + PHONE + " or send an email.", [CALL, MAIL]); } },
     { k: /(fire|rated|code|egress|panic|exit device|stairwell)/i, r: function () {
-      bot("We provide <strong>code-compliant fire-rated doors</strong> along with hollow metal doors and frames and the hardware to go with them (closers, exit devices, and more). Tell us about your openings and we'll help you get it right.", [{ go: "builder", label: "Build my door" }, CALL]); } },
+      bot("We can help with that. We provide <strong>code-compliant fire-rated doors</strong>, along with hollow metal doors and frames and the hardware that goes with them, such as closers and exit devices. Tell us about your opening, build the door, or call " + PHONE + ".", [{ go: "builder", label: "Build my door" }, CALL]); } },
     { k: /(storefront|glass|entrance|entry|commercial|business|office|retail|industrial|security|safe ?room)/i, r: function () {
-      bot("For businesses we offer <strong>complete commercial entrance solutions</strong>: storefront doors and glass, code-compliant fire-rated doors, and durable security doors. We also do safe room doors for homes and businesses.", [{ go: "builder", label: "Build my door" }, CALL]); } },
+      bot("For a business, we can take care of the whole entrance: <strong>storefront doors and glass</strong>, code-compliant fire-rated doors, and durable security doors. We also do safe room doors for homes and businesses. Build the door when you're ready, or call " + PHONE + ".", [{ go: "builder", label: "Build my door" }, CALL]); } },
     { k: /(residential|home|house|interior|barn|closet|replace|replacement|remodel|swing)/i, r: function () {
-      bot("We do residential too! That includes interior and exterior swing doors, replacement doors, safe room doors, and custom door solutions like sliding barn doors, for new construction or remodeling.", [{ go: "gallery", label: "See our work" }, { go: "builder", label: "Build my door", alt: true }]); } },
+      bot("We do residential work too, and we're glad to help. That includes interior and exterior swing doors, replacement doors, safe room doors, and sliding barn doors, for new construction or remodeling. Build the door, or call " + PHONE + " if you'd rather talk it through.", [{ go: "gallery", label: "See our work" }, { go: "builder", label: "Build my door", alt: true }]); } },
     { k: /(price|cost|how much|quote|estimate|bid|pricing)/i, r: function () {
-      bot("Every opening is a little different, so we quote each project individually. The fastest way is to build your door in the <strong>door builder</strong> at the top of the page: your quote request then carries every detail of the door you built, and our office follows up. Or just give us a call.", [{ go: "builder", label: "Build my door" }, CALL]); } },
+      bot("We don't give prices in chat. Every opening is a little different, so we quote each project on its own. Build your door and send a quote request, and our office will follow up. Or call " + PHONE + " whenever you're ready.", [{ go: "builder", label: "Build my door" }, CALL]); } },
     { k: /(hour|open|close[sd]?\b|schedul|appointment|when can|availability|available|time)/i, r: function () {
-      bot("The best way to get on the schedule is to <strong>call our office at " + PHONE + "</strong>. You can also build your door and send a quote request any time, and we'll reach out to set things up.", [CALL, { go: "builder", label: "Build my door", alt: true }]); } },
+      bot("Our hours aren't listed online. Call our office at <strong>" + PHONE + "</strong> and we'll find a time with you. You can also build your door and send a quote request whenever it suits you, and we'll reach out.", [CALL, { go: "builder", label: "Build my door", alt: true }]); } },
     { k: /(area|serve|service area|travel|county|where|location|located|near|bowling green|warren|kentucky|\bky\b|come to)/i, r: function () {
-      bot("We're based at <strong>930 Gordon Avenue in Bowling Green, KY</strong> and serve <strong>Warren County and the surrounding area</strong>. Not sure if you're in range? Just give us a call at " + PHONE + ".", [{ go: "area", label: "View map" }, CALL]); } },
+      bot("We're based at <strong>930 Gordon Avenue in Bowling Green, KY</strong> and serve <strong>Warren County and the surrounding area</strong>. Not sure if we cover your spot? Call " + PHONE + " and we'll let you know.", [{ go: "area", label: "View map" }, CALL]); } },
     { k: /(service|offer|what do you|do you do|products|hardware|frame|partition|accessor|door)/i, r: function () {
-      bot("We're your door specialists! We handle <strong>doors, frames, hardware, partitions, accessories and flag poles</strong> for commercial and residential projects: storefronts and glass, fire-rated and hollow metal, security and safe room doors, interior and exterior doors, and flagpoles. Fabrication is done by our in-house team.", [{ go: "services", label: "View services" }, { go: "builder", label: "Build my door", alt: true }]); } },
+      bot("Happy to help. We're your door specialists: <strong>doors, frames, hardware, partitions, accessories and flag poles</strong> for commercial and residential projects. That includes storefronts and glass, fire-rated and hollow metal, security and safe room doors, interior and exterior doors, and flagpoles. Our own team does the fabrication. Build a door when you're ready, or call " + PHONE + ".", [{ go: "services", label: "View services" }, { go: "builder", label: "Build my door", alt: true }]); } },
     { k: /(contact|phone|call|email|e-mail|address|talk|speak|person|human|someone)/i, r: function () {
-      bot("You can reach us at:<br>&#9742; <a href='" + TEL + "'>" + PHONE + "</a><br>&#9993; <a href='mailto:" + EMAIL + "'>" + EMAIL + "</a><br>930 Gordon Avenue, Bowling Green, KY 42101", [CALL, MAIL]); } },
-    { k: /(thank|thanks|thx|appreciate)/i, r: function () { bot("You're welcome! If anything else comes up, we're just a call away at " + PHONE + "."); } },
-    { k: /^(hi|hello|hey|howdy|good (morning|afternoon|evening))\b/i, r: function () { bot("Hello! How can we help? Pick a topic below or type your question."); } }
+      bot("We'd be glad to hear from you:<br>&#9742; <a href='" + TEL + "'>" + PHONE + "</a><br>&#9993; <a href='mailto:" + EMAIL + "'>" + EMAIL + "</a><br>930 Gordon Avenue, Bowling Green, KY 42101<br>Call us if you'd like to talk it through.", [CALL, MAIL]); } },
+    { k: /(thank|thanks|thx|appreciate)/i, r: function () {
+      bot("You're welcome. If something else comes up, call " + PHONE + ", or build the door and send a quote request. We're here when you need us.", [CALL, { go: "builder", label: "Build my door", alt: true }]); } },
+    { k: /^(hi|hello|hey|howdy|good (morning|afternoon|evening))\b/i, r: function () {
+      bot("Hello, welcome. We can help with doors, frames, and hardware. What's your question? You can also build the door or call " + PHONE + ".", [{ go: "builder", label: "Build my door" }, CALL]); } }
   ];
   var CHIP_MAP = { "Services": "services", "Scheduling & hours": "hours", "Service area": "service area", "Broken door": "broken door", "Get a quote": "quote", "Contact info": "contact" };
+  function onTopic(text) {
+    return /door|frame|hardware|hinge|lock|closer|deadbolt|panic|exit|kick|keypad|storefront|fire|barn|flag|quote|pric|cost|estimate|\bbid\b|hour|schedul|appoint|address|phone|e-?mail|bowling|warren|kentuck|\bky\b|glass|steel|wood|fiberglass|hollow|partition|accessor|safe|security|entrance|entry|commercial|residential|remodel|replac|swing|builder|opening|measure|\bcode\b|\bada\b|egress|threshold|repair|\bfix\b|broken|stuck|contact|shop|office|bluegrass|sonya|install|service/i.test(text);
+  }
   function answer(text) {
     for (var i = 0; i < INTENTS.length; i++) { if (INTENTS[i].k.test(text)) { INTENTS[i].r(); return; } }
-    bot("That's a great question for our team. Give us a call at <strong>" + PHONE + "</strong> or send us an email, and we'll be glad to help.", [CALL, MAIL]);
+    if (!onTopic(text)) {
+      bot("We only help with questions about <strong>Bluegrass Commercial Door &amp; More</strong>, like doors, frames, and hardware. If you have one of those, just ask. You can also build the door or call <strong>" + PHONE + "</strong>.", [{ go: "builder", label: "Build my door" }, CALL]);
+      return;
+    }
+    bot("That's a good one for our team to walk through with you. Call <strong>" + PHONE + "</strong>, or build the door and send a quote request, and we'll take it from there.", [CALL, { go: "builder", label: "Build my door", alt: true }]);
   }
   function ask(text, query) {
     busy = true;
