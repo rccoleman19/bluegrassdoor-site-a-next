@@ -10,7 +10,8 @@ var path = require("path");
 var { spawn } = require("child_process");
 
 var ROOT = __dirname;
-var GREETING = "Hi, welcome in. We're Bluegrass Commercial Door & More, and we can help with doors, frames, and hardware. What would you like to know?";
+var GREETING = "Hi, I'm Dory. I can help with doors, frames, and hardware. What would you like to know?";
+var TITLE = "DOOR";
 var PHONE = "270-780-3235";
 var NOTE = "This chat is answered by AI, not someone in the office. Please don't share private info. For anything urgent, call " + PHONE + ".";
 var EMAIL = "sonya@bluegrassdoor.com";
@@ -27,8 +28,14 @@ function sourceChecks() {
   var html = read("index.html");
   var req = read("request.html");
 
-  if (app.indexOf(GREETING.replace(" & ", " &amp; ")) < 0 && app.indexOf("Hi, welcome in.") < 0) fail("greeting copy", "opening line missing from app.js");
+  if (app.indexOf(GREETING) < 0) fail("greeting copy", "opening line missing from app.js");
+  else if (/\u2014|\bAI\b/.test(GREETING)) fail("greeting copy", "greeting uses an em dash or puts AI in the name");
+  else if (app.indexOf("Hi, welcome in.") >= 0) fail("greeting copy", "old greeting is still in app.js");
   else pass("greeting copy is in the chat opener");
+
+  if (html.indexOf("<strong>" + TITLE + "</strong>") < 0) fail("chat title", "panel title is not DOOR");
+  else if (/Bluegrass Door Help/i.test(html)) fail("chat title", "old title is still on the page");
+  else pass("chat panel title is DOOR");
 
   if (app.indexOf("This chat is answered by AI, not someone in the office. Please don't share private info. For anything urgent, call ") < 0) fail("chat note", "new note missing from app.js");
   else if (/Answers are automated|\u2014/.test(app)) fail("chat note", "old note wording is still in app.js");
@@ -182,8 +189,14 @@ async function browserChecks(pageUrl) {
   var opened = await js("var panel = document.querySelector('#chat-panel'); ({ hidden: panel.hidden, greeting: (document.querySelector('#chat-log .msg--bot') || {}).innerText || '', users: document.querySelectorAll('#chat-log .msg--user').length, chips: Array.from(document.querySelectorAll('#chat-chips button')).map(function (b) { return b.textContent; }) })");
   if (opened.hidden) fail("greeting visible", "panel stayed closed");
   else if (opened.users !== 0) fail("greeting visible", "a visitor message appeared before anyone typed");
-  else   if (opened.greeting !== GREETING) fail("greeting visible", JSON.stringify(opened.greeting));
+  else if (opened.greeting !== GREETING) fail("greeting visible", JSON.stringify(opened.greeting));
+  else if (/\u2014|\bAI\b/.test(opened.greeting)) fail("greeting visible", "greeting uses an em dash or puts AI in the name");
   else pass("greeting is visible on open, before anyone types");
+
+  var title = await js("(document.querySelector('#chat-panel .chat__head strong') || {}).textContent || ''");
+  if (title !== TITLE) fail("chat title", JSON.stringify(title));
+  else if (/\bAI\b|\u2014/.test(title)) fail("chat title", "title uses an em dash or puts AI in the name");
+  else pass("panel title reads DOOR");
 
   var note = await js("(document.querySelector('#chat-log .chat__note') || {}).textContent || ''");
   if (note !== NOTE) fail("chat note", JSON.stringify(note));

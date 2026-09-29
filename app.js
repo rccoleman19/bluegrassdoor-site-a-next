@@ -670,7 +670,7 @@
     chatPanel.hidden = false; chatWrap.classList.add("is-open"); chatOpenBtn.setAttribute("aria-expanded", "true");
     if (!started) {
       started = true;
-      bot("Hi, welcome in. We're <strong>Bluegrass Commercial Door &amp; More</strong>, and we can help with doors, frames, and hardware. What would you like to know?");
+      bot("Hi, I'm Dory. I can help with doors, frames, and hardware. What would you like to know?");
       history = [];
       var note = document.createElement("p"); note.className = "chat__note";
       note.style.cssText = "margin:0;align-self:center;max-width:92%;font-size:.8rem;line-height:1.35;color:#5b6780;text-align:center";
