@@ -674,7 +674,7 @@
       history = [];
       var note = document.createElement("p"); note.className = "chat__note";
       note.style.cssText = "margin:0;align-self:center;max-width:92%;font-size:.8rem;line-height:1.35;color:#5b6780;text-align:center";
-      note.textContent = "Answers are automated \u2014 please don't share sensitive info. For anything urgent call " + PHONE + ".";
+      note.textContent = "This chat is answered by AI, not someone in the office. Please don't share private info. For anything urgent, call " + PHONE + ".";
       chatLog.appendChild(note);
       renderChips(CHIPS);
     }

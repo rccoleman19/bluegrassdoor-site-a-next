@@ -12,6 +12,7 @@ var { spawn } = require("child_process");
 var ROOT = __dirname;
 var GREETING = "Hi, welcome in. We're Bluegrass Commercial Door & More, and we can help with doors, frames, and hardware. What would you like to know?";
 var PHONE = "270-780-3235";
+var NOTE = "This chat is answered by AI, not someone in the office. Please don't share private info. For anything urgent, call " + PHONE + ".";
 var EMAIL = "sonya@bluegrassdoor.com";
 var BANNED = ["twin", "demo", "bake-off", "prototype", "test", "placeholder", "sample", "mock"];
 var fails = [];
@@ -28,6 +29,10 @@ function sourceChecks() {
 
   if (app.indexOf(GREETING.replace(" & ", " &amp; ")) < 0 && app.indexOf("Hi, welcome in.") < 0) fail("greeting copy", "opening line missing from app.js");
   else pass("greeting copy is in the chat opener");
+
+  if (app.indexOf("This chat is answered by AI, not someone in the office. Please don't share private info. For anything urgent, call ") < 0) fail("chat note", "new note missing from app.js");
+  else if (/Answers are automated|\u2014/.test(app)) fail("chat note", "old note wording is still in app.js");
+  else pass("chat note copy is in the opener");
 
   if (!/setTimeout\(function \(\) \{ ctl\.abort\(\); \}, 8000\)/.test(app)) fail("8s give-up", "abort timer is not 8000");
   else pass("8-second give-up is still in place");
@@ -179,6 +184,11 @@ async function browserChecks(pageUrl) {
   else if (opened.users !== 0) fail("greeting visible", "a visitor message appeared before anyone typed");
   else   if (opened.greeting !== GREETING) fail("greeting visible", JSON.stringify(opened.greeting));
   else pass("greeting is visible on open, before anyone types");
+
+  var note = await js("(document.querySelector('#chat-log .chat__note') || {}).textContent || ''");
+  if (note !== NOTE) fail("chat note", JSON.stringify(note));
+  else if (/automated|\u2014/.test(note)) fail("chat note", "old wording is showing");
+  else pass("note under the greeting");
 
   var shot = await cdp.send("Page.captureScreenshot", { format: "png" });
   fs.mkdirSync("/opt/cursor/artifacts", { recursive: true });
