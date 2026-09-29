@@ -166,8 +166,8 @@ async function browserChecks(pageUrl) {
   await cdp.send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
   await cdp.send("Page.navigate", { url: pageUrl });
   await waitFor(async function () {
-    var r = await cdp.send("Runtime.evaluate", { expression: "!!document.querySelector('#chat-open') && !!document.querySelector('#chat-log')", returnByValue: true });
-    return r.result && r.result.value && (await cdp.send("Runtime.evaluate", { expression: "document.querySelector('#year') && document.querySelector('#year').textContent.length === 4", returnByValue: true })).result.value;
+    var r = await cdp.send("Runtime.evaluate", { expression: "!!document.querySelector('#chat-open') && !!document.querySelector('#chat-log') && !!window.DoorVisualize", returnByValue: true });
+    return r.result && r.result.value;
   }, 15000, "page");
 
   async function js(expr) {
