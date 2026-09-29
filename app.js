@@ -611,13 +611,71 @@
 
   /* ---------- Help chat ---------- */
   var chatPanel = $("#chat-panel"), chatLog = $("#chat-log"), chatChips = $("#chat-chips"), chatInput = $("#chat-input"), chatOpenBtn = $("#chat-open");
-  var started = false;
+  var started = false, history = [], busy = false;
+  /* AI answers come from the "chat" function (free tiers only). If it has no answer, is busy or can't be
+     reached, the scripted answers below are used instead, so the chat always works. */
+  var CHAT_URL = "https://esrwugfaqlwttxmfkpkx.supabase.co/functions/v1/chat";
+  var CHAT_KEY = QUOTE_API.key; // the same public website key the quote form uses; the function checks the site origin and rate limits
+  /* Replies are shown as plain text. As a second line of defence (the service already cleans them), drop any HTML,
+     markdown and links to other websites, and keep only our own phone number and email. */
+  var OWN_SITE = /(^|\.)(bluegrassdoor\.com|rccoleman19\.github\.io)$/i;
+  var LINKISH = /\b(?:https?:\/\/|www\.)[^\s<>"'()\[\]]+|\b(?:[a-z0-9-]+\.)+(?:com|net|org|io|co|us|info|biz|gov|edu|app|dev|ai|xyz|site|online|shop|store|me|ly|gl|to)\b(?:\/[^\s<>"'()\[\]]*)?/gi;
+  function tidyReply(t) {
+    t = String(t == null ? "" : t).replace(/\r/g, "").replace(/<(script|style)\b[\s\S]*?(<\/\1\s*>|$)/gi, "")
+      .replace(/<\s*(br|\/p|\/div|\/li)\b[^>]*>/gi, "\n").replace(/<\/?[a-z!][^>]*>?/gi, "")   // HTML tags
+      .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")                                             // [text](link) -> text
+      .replace(/\*\*|__|`/g, "").replace(/^\s*#{1,6}\s+/gm, "");                               // markdown marks
+    t = t.replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g, function (m) { return m.toLowerCase() === EMAIL ? m : EMAIL; });
+    t = t.replace(LINKISH, function (m, off, all) {
+      if (all.charAt(off - 1) === "@") return m;                                                // the domain of our email
+      var tail = /[.,;:!?]+$/.exec(m); tail = tail ? tail[0] : ""; m = m.slice(0, m.length - tail.length);
+      var host = m.replace(/^https?:\/\//i, "").split(/[\/?#:]/)[0];
+      return (OWN_SITE.test(host) ? m : "") + tail;
+    });
+    t = t.replace(/(?:\+?1[\s.-]*)?\(?\b\d{3}\)?[\s.-]*\d{3}[\s.-]*\d{4}\b/g, function (m) { return m.replace(/\D/g, "").slice(-10) === "2707803235" ? m : PHONE; });
+    return t.replace(/\(\s*\)/g, "").replace(/[ \t]+([.,;:!?])/g, "$1").replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  }
+  function remember(role, text) { text = String(text || "").trim(); if (text) history.push({ role: role, content: text.slice(0, role === "user" ? 600 : 1500) }); if (history.length > 24) history = history.slice(-24); }
+  function chatSession() {
+    try { var k = sessionStorage.getItem("bgd-chat"); if (!k) { k = "s" + Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem("bgd-chat", k); } return k; }
+    catch (e) { return chatSession.k || (chatSession.k = "s" + Math.random().toString(36).slice(2) + Date.now().toString(36)); }
+  }
+  function builderSummary() {
+    try {
+      var line = function (d) { return [S.typeLabel(d.type), S.oneLine(d), (d.hardware || []).length ? "hardware: " + S.hwTitles(d).join(", ") : ""].filter(Boolean).join(" - "); };
+      var out = doors.map(function (d, i) { return "Door " + (i + 1) + ((d.qty || 1) > 1 ? " (x" + d.qty + ")" : "") + ": " + line(d); });
+      if (state && state.type) out.push("Door being built now (step " + step + " of 4): " + line(state));
+      return out.join("\n").slice(0, 700);
+    } catch (e) { return ""; }
+  }
+  var AI_ACTIONS = { builder: { go: "builder", label: "Build my door" }, gallery: { go: "gallery", label: "See our work" }, area: { go: "area", label: "View map" } };
+  function aiActions(list) {
+    var out = [];
+    (Array.isArray(list) ? list : []).forEach(function (a) { var x = a && AI_ACTIONS[a.type]; if (x && out.indexOf(x) < 0 && out.length < 3) out.push(x); });
+    return out.map(function (x, i) { return { href: x.href, go: x.go, label: x.label, alt: i > 0 }; });
+  }
+  function askAI(text, done) {
+    if (!window.fetch || !window.AbortController) { done(false); return; }
+    var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 8000);
+    fetch(CHAT_URL, {
+      method: "POST", signal: ctl.signal,
+      headers: { "Content-Type": "application/json", apikey: CHAT_KEY },
+      body: JSON.stringify({ messages: history.slice(-12), builder: builderSummary(), sessionId: chatSession() })
+    }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { clearTimeout(timer); var r = d && !d.fallback && typeof d.reply === "string" ? tidyReply(d.reply) : ""; if (r) done(true, { reply: r, actions: d.actions }); else done(false); })
+      .catch(function () { clearTimeout(timer); done(false); });
+  }
   var CHIPS = ["Services", "Scheduling & hours", "Service area", "Broken door", "Get a quote", "Contact info"];
   function openChat() {
     chatPanel.hidden = false; chatWrap.classList.add("is-open"); chatOpenBtn.setAttribute("aria-expanded", "true");
     if (!started) {
       started = true;
       bot("Hi there! Thanks for visiting <strong>Bluegrass Commercial Door &amp; More</strong>. What can we help you with today?");
+      history = [];
+      var note = document.createElement("p"); note.className = "chat__note";
+      note.style.cssText = "margin:0;align-self:center;max-width:92%;font-size:.8rem;line-height:1.35;color:#5b6780;text-align:center";
+      note.textContent = "Answers are automated \u2014 please don't share sensitive info. For anything urgent call " + PHONE + ".";
+      chatLog.appendChild(note);
       renderChips(CHIPS);
     }
     setTimeout(function () { if (window.innerWidth >= 640) chatInput.focus(); }, 50);
@@ -627,22 +685,31 @@
   $$("[data-open-chat]").forEach(function (b) { b.addEventListener("click", openChat); });
   $("#chat-close").addEventListener("click", closeChat);
   function scrollLog() { chatLog.scrollTop = chatLog.scrollHeight; }
-  function bot(html, actions) {
-    var m = document.createElement("div"); m.className = "msg msg--bot"; m.innerHTML = html;
-    if (actions && actions.length) {
-      var a = document.createElement("div"); a.className = "msg__actions";
-      a.innerHTML = actions.map(function (x) {
-        return x.href ? '<a href="' + x.href + '"' + (x.alt ? ' class="alt"' : "") + ">" + x.label + "</a>"
-          : '<button type="button" data-go="' + x.go + '"' + (x.alt ? ' class="alt"' : "") + ">" + x.label + "</button>";
-      }).join("");
-      m.appendChild(a);
-    }
-    chatLog.appendChild(m); scrollLog();
+  function actionRow(actions) {
+    var a = document.createElement("div"); a.className = "msg__actions";
+    a.innerHTML = actions.map(function (x) {
+      return x.href ? '<a href="' + esc(x.href) + '"' + (x.alt ? ' class="alt"' : "") + ">" + esc(x.label) + "</a>"
+        : '<button type="button" data-go="' + esc(x.go) + '"' + (x.alt ? ' class="alt"' : "") + ">" + esc(x.label) + "</button>";
+    }).join("");
+    return a;
   }
-  function user(text) { var m = document.createElement("div"); m.className = "msg msg--user"; m.textContent = text; chatLog.appendChild(m); scrollLog(); }
+  function bot(html, actions) { // scripted replies (trusted HTML written in this file)
+    var m = document.createElement("div"); m.className = "msg msg--bot"; m.innerHTML = html;
+    var said = m.textContent;
+    if (actions && actions.length) m.appendChild(actionRow(actions));
+    chatLog.appendChild(m); scrollLog(); remember("assistant", said);
+  }
+  function botText(text, actions) { // replies from the chat service: plain text only, never HTML
+    var m = document.createElement("div"); m.className = "msg msg--bot";
+    String(text).split("\n").forEach(function (line, i) { if (i) m.appendChild(document.createElement("br")); m.appendChild(document.createTextNode(line)); });
+    if (actions && actions.length) m.appendChild(actionRow(actions));
+    chatLog.appendChild(m); scrollLog(); remember("assistant", String(text));
+  }
+  function user(text) { var m = document.createElement("div"); m.className = "msg msg--user"; m.textContent = text; chatLog.appendChild(m); scrollLog(); remember("user", text); }
   function renderChips(list) { chatChips.innerHTML = list.map(function (c) { return '<button type="button">' + c + "</button>"; }).join(""); }
   var CALL = { href: TEL, label: "Call " + PHONE };
   var MAIL = { href: "mailto:" + EMAIL, label: "Email us", alt: true };
+  AI_ACTIONS.call = CALL; AI_ACTIONS.email = MAIL;
   var INTENTS = [
     { k: /(emergenc|broken|break[- ]?in|won'?t (close|lock|latch|open)|stuck|damag|urgent|asap|right away|kicked|smash|repair|fix)/i, r: function () {
       bot("Sorry to hear that! For a broken, damaged or unsecured door, please <strong>call our office right away at " + PHONE + "</strong> so we can get you taken care of as quickly as possible.", [CALL, MAIL]); } },
@@ -673,12 +740,21 @@
     bot("That's a great question for our team. Give us a call at <strong>" + PHONE + "</strong> or send us an email, and we'll be glad to help.", [CALL, MAIL]);
   }
   function ask(text, query) {
+    busy = true;
     user(text);
     var t = document.createElement("div"); t.className = "msg msg--bot msg--typing"; t.innerHTML = "<i></i><i></i><i></i>"; chatLog.appendChild(t); scrollLog();
-    setTimeout(function () { t.remove(); answer(query || text); }, 550);
+    var scripted = function () { t.remove(); answer(query || text); busy = false; };
+    if (query) { setTimeout(scripted, 550); return; } // topic chips keep their scripted answers
+    var t0 = Date.now();
+    askAI(text, function (ok, d) {
+      setTimeout(function () {
+        if (!ok) { scripted(); return; }
+        t.remove(); botText(d.reply, aiActions(d.actions)); busy = false;
+      }, Math.max(0, 450 - (Date.now() - t0)));
+    });
   }
-  chatChips.addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) ask(b.textContent, CHIP_MAP[b.textContent]); });
-  $("#chat-form").addEventListener("submit", function (e) { e.preventDefault(); var v = chatInput.value.trim(); if (!v) return; chatInput.value = ""; ask(v); });
+  chatChips.addEventListener("click", function (e) { var b = e.target.closest("button"); if (b && !busy) ask(b.textContent, CHIP_MAP[b.textContent]); });
+  $("#chat-form").addEventListener("submit", function (e) { e.preventDefault(); var v = chatInput.value.trim(); if (!v || busy) return; chatInput.value = ""; ask(v.slice(0, 600)); });
   chatLog.addEventListener("click", function (e) {
     var b = e.target.closest("[data-go]"); if (!b) return;
     var go = b.getAttribute("data-go");
