@@ -324,7 +324,7 @@
   }
   function renderDoors() {
     var n = doors.length; drawRev++;
-    $("#built-title").textContent = n === 1 ? "Your door is ready" : "Your " + n + " doors are ready";
+    $("#built-title").textContent = n === 1 ? "Your door is ready for quote." : "Your doors are ready for quote.";
     $("#built-lead").textContent = n === 1 ? "This is exactly what you built. Look it over, then get a quote on it." : "Each door goes into one quote request, exactly as you built it.";
     $("#b-quote-text").textContent = quoteLabel();
     $("#door-list").innerHTML = doors.map(function (d, i) {
@@ -670,11 +670,11 @@
     chatPanel.hidden = false; chatWrap.classList.add("is-open"); chatOpenBtn.setAttribute("aria-expanded", "true");
     if (!started) {
       started = true;
-      bot("Hi, welcome in. We're <strong>Bluegrass Commercial Door &amp; More</strong>, and we can help with doors, frames, and hardware. What would you like to know?");
+      bot("Hi, welcome in. I'm Dory. I can help with doors, frames, and hardware. What would you like to know?");
       history = [];
       var note = document.createElement("p"); note.className = "chat__note";
       note.style.cssText = "margin:0;align-self:center;max-width:92%;font-size:.8rem;line-height:1.35;color:#5b6780;text-align:center";
-      note.textContent = "Answers are automated \u2014 please don't share sensitive info. For anything urgent call " + PHONE + ".";
+      note.textContent = "This chat is answered by AI, not someone in the office. Please don't share private info. For anything urgent, call " + PHONE + ".";
       chatLog.appendChild(note);
       renderChips(CHIPS);
     }
