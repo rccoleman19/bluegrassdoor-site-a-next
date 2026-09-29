@@ -324,7 +324,7 @@
   }
   function renderDoors() {
     var n = doors.length; drawRev++;
-    $("#built-title").textContent = n === 1 ? "Your door is ready" : "Your " + n + " doors are ready";
+    $("#built-title").textContent = n === 1 ? "Your door is ready for quote." : "Your doors are ready for quote.";
     $("#built-lead").textContent = n === 1 ? "This is exactly what you built. Look it over, then get a quote on it." : "Each door goes into one quote request, exactly as you built it.";
     $("#b-quote-text").textContent = quoteLabel();
     $("#door-list").innerHTML = doors.map(function (d, i) {
