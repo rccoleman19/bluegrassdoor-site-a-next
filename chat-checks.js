@@ -10,7 +10,7 @@ var path = require("path");
 var { spawn } = require("child_process");
 
 var ROOT = __dirname;
-var GREETING = "Hi, welcome in. DOORY can help with doors, frames, and hardware. What would you like to know?";
+var GREETING = "Hi, welcome in. I'm Dory. I can help with doors, frames, and hardware. What would you like to know?";
 var TITLE = "DOORY";
 var PHONE = "270-780-3235";
 var NOTE = "This chat is answered by AI, not someone in the office. Please don't share private info. For anything urgent, call " + PHONE + ".";
@@ -29,8 +29,7 @@ function sourceChecks() {
   var req = read("request.html");
 
   if (app.indexOf(GREETING) < 0) fail("greeting copy", "opening line missing from app.js");
-  else if (/\u2014|\bAI\b|\bDory\b/.test(GREETING)) fail("greeting copy", "greeting uses an em dash, names Dory, or puts AI in the name");
-  else if (app.indexOf("I'm Dory") >= 0) fail("greeting copy", "greeting still introduces Dory");
+  else if (/\u2014|\bAI\b|\bDOORY\b/.test(GREETING) || !/\bDory\b/.test(GREETING)) fail("greeting copy", "greeting should introduce Dory, without DOORY, an em dash, or AI in the name");
   else pass("greeting copy is in the chat opener");
 
   if (html.indexOf("<strong>" + TITLE + "</strong>") < 0) fail("chat title", "panel title is not DOORY");
@@ -190,7 +189,7 @@ async function browserChecks(pageUrl) {
   if (opened.hidden) fail("greeting visible", "panel stayed closed");
   else if (opened.users !== 0) fail("greeting visible", "a visitor message appeared before anyone typed");
   else if (opened.greeting !== GREETING) fail("greeting visible", JSON.stringify(opened.greeting));
-  else if (/\u2014|\bAI\b|\bDory\b/.test(opened.greeting)) fail("greeting visible", "greeting uses an em dash, names Dory, or puts AI in the name");
+  else if (/\u2014|\bAI\b|\bDOORY\b/.test(opened.greeting) || !/\bDory\b/.test(opened.greeting)) fail("greeting visible", "greeting should introduce Dory, without DOORY, an em dash, or AI in the name");
   else pass("greeting is visible on open, before anyone types");
 
   var title = await js("(document.querySelector('#chat-panel .chat__head strong') || {}).textContent || ''");
