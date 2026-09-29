@@ -11,9 +11,9 @@ var { spawn } = require("child_process");
 
 var ROOT = __dirname;
 var GREETING = "Hi, welcome in. I'm Dory. I can help with doors, frames, and hardware. What would you like to know?";
-var TITLE = "DOORY";
+var TITLE = "Dory";
 var PHONE = "270-780-3235";
-var NOTE = "This chat is answered by AI, not someone in the office. Please don't share private info. For anything urgent, call " + PHONE + ".";
+var NOTE = "Dory is a virtual assistant for Bluegrass Commercial Door & More.\nPlease don't share private info.\nFor anything urgent, call " + PHONE + ".";
 var EMAIL = "sonya@bluegrassdoor.com";
 var BANNED = ["twin", "demo", "bake-off", "prototype", "test", "placeholder", "sample", "mock"];
 var fails = [];
@@ -32,12 +32,17 @@ function sourceChecks() {
   else if (/\u2014|\bAI\b|\bDOORY\b/.test(GREETING) || !/\bDory\b/.test(GREETING)) fail("greeting copy", "greeting should introduce Dory, without DOORY, an em dash, or AI in the name");
   else pass("greeting copy is in the chat opener");
 
-  if (html.indexOf("<strong>" + TITLE + "</strong>") < 0) fail("chat title", "panel title is not DOORY");
-  else if (/Bluegrass Door Help/i.test(html) || html.indexOf("<strong>DOOR</strong>") >= 0) fail("chat title", "old title is still on the page");
-  else pass("chat panel title is DOORY");
+  if (html.indexOf("<strong>" + TITLE + "</strong>") < 0 || html.indexOf('aria-label="' + TITLE + '"') < 0) fail("chat title", "panel title is not Dory");
+  else if (html.indexOf("DOORY") >= 0 || /Bluegrass Door Help/i.test(html)) fail("chat title", "old title is still on the page");
+  else pass("chat panel title is Dory");
 
-  if (app.indexOf("This chat is answered by AI, not someone in the office. Please don't share private info. For anything urgent, call ") < 0) fail("chat note", "new note missing from app.js");
-  else if (/Answers are automated|\u2014/.test(app)) fail("chat note", "old note wording is still in app.js");
+  [html, app, req].forEach(function (src, i) {
+    if (src.indexOf("DOORY") >= 0) fail("DOORY leftover", (i === 0 ? "home" : i === 1 ? "script" : "request") + " still says DOORY");
+  });
+  if (!fails.some(function (f) { return f.indexOf("DOORY leftover") === 0; })) pass("visitor pages do not say DOORY");
+
+  if (app.indexOf("Dory is a virtual assistant for Bluegrass Commercial Door & More.\\nPlease don't share private info.\\nFor anything urgent, call ") < 0) fail("chat note", "new note missing from app.js");
+  else if (/not someone in the office|I'm an AI helper|Answers are automated|\u2014/.test(app)) fail("chat note", "old note wording is still in app.js");
   else pass("chat note copy is in the opener");
 
   if (!/setTimeout\(function \(\) \{ ctl\.abort\(\); \}, 8000\)/.test(app)) fail("8s give-up", "abort timer is not 8000");
@@ -192,14 +197,15 @@ async function browserChecks(pageUrl) {
   else if (/\u2014|\bAI\b|\bDOORY\b/.test(opened.greeting) || !/\bDory\b/.test(opened.greeting)) fail("greeting visible", "greeting should introduce Dory, without DOORY, an em dash, or AI in the name");
   else pass("greeting is visible on open, before anyone types");
 
-  var title = await js("(document.querySelector('#chat-panel .chat__head strong') || {}).textContent || ''");
-  if (title !== TITLE) fail("chat title", JSON.stringify(title));
-  else if (/\bAI\b|\u2014|\bDory\b/.test(title)) fail("chat title", "title uses an em dash or a separate Dory name");
-  else pass("panel title reads DOORY");
+  var title = await js("(function () { var panel = document.querySelector('#chat-panel'); var strong = document.querySelector('#chat-panel .chat__head strong'); return { title: (strong || {}).textContent || '', label: panel ? (panel.getAttribute('aria-label') || '') : '', transform: strong ? getComputedStyle(strong).textTransform : '' }; })()");
+  if (title.title !== TITLE || title.label !== TITLE) fail("chat title", JSON.stringify(title));
+  else if (title.transform === "uppercase" || /DOORY|\u2014|\bAI\b/.test(title.title + " " + title.label)) fail("chat title", "title still says DOORY, or uses an em dash or AI");
+  else pass("panel title reads Dory");
 
-  var note = await js("(document.querySelector('#chat-log .chat__note') || {}).textContent || ''");
-  if (note !== NOTE) fail("chat note", JSON.stringify(note));
-  else if (/automated|\u2014/.test(note)) fail("chat note", "old wording is showing");
+  var note = await js("(function () { var n = document.querySelector('#chat-log .chat__note'); return { text: (n || {}).textContent || '', lines: n ? getComputedStyle(n).whiteSpace : '' }; })()");
+  if (note.text !== NOTE) fail("chat note", JSON.stringify(note.text));
+  else if (note.lines !== "pre-line" && note.lines !== "pre-wrap") fail("chat note", "the two reminders are not on their own lines");
+  else if (/automated|\u2014|not someone in the office/.test(note.text)) fail("chat note", "old wording is showing");
   else pass("note under the greeting");
 
   var shot = await cdp.send("Page.captureScreenshot", { format: "png" });

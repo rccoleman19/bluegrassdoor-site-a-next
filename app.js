@@ -673,8 +673,8 @@
       bot("Hi, welcome in. I'm Dory. I can help with doors, frames, and hardware. What would you like to know?");
       history = [];
       var note = document.createElement("p"); note.className = "chat__note";
-      note.style.cssText = "margin:0;align-self:center;max-width:92%;font-size:.8rem;line-height:1.35;color:#5b6780;text-align:center";
-      note.textContent = "This chat is answered by AI, not someone in the office. Please don't share private info. For anything urgent, call " + PHONE + ".";
+      note.style.cssText = "margin:0;align-self:center;max-width:92%;font-size:.8rem;line-height:1.35;color:#5b6780;text-align:center;white-space:pre-line";
+      note.textContent = "Dory is a virtual assistant for Bluegrass Commercial Door & More.\nPlease don't share private info.\nFor anything urgent, call " + PHONE + ".";
       chatLog.appendChild(note);
       renderChips(CHIPS);
     }
