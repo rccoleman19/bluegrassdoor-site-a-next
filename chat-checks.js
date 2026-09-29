@@ -13,7 +13,7 @@ var ROOT = __dirname;
 var GREETING = "Hi, welcome in. I'm Dory. I can help with doors, frames, and hardware. What would you like to know?";
 var TITLE = "Dory";
 var PHONE = "270-780-3235";
-var NOTE = "Hi, I'm an AI helper for Bluegrass Commercial Door & More.\nPlease don't share private info.\nFor anything urgent, call " + PHONE + ".";
+var NOTE = "Dory is a virtual assistant for Bluegrass Commercial Door & More.\nPlease don't share private info.\nFor anything urgent, call " + PHONE + ".";
 var EMAIL = "sonya@bluegrassdoor.com";
 var BANNED = ["twin", "demo", "bake-off", "prototype", "test", "placeholder", "sample", "mock"];
 var fails = [];
@@ -41,8 +41,8 @@ function sourceChecks() {
   });
   if (!fails.some(function (f) { return f.indexOf("DOORY leftover") === 0; })) pass("visitor pages do not say DOORY");
 
-  if (app.indexOf("Hi, I'm an AI helper for Bluegrass Commercial Door & More.\\nPlease don't share private info.\\nFor anything urgent, call ") < 0) fail("chat note", "new note missing from app.js");
-  else if (/not someone in the office|Answers are automated|\u2014/.test(app)) fail("chat note", "old note wording is still in app.js");
+  if (app.indexOf("Dory is a virtual assistant for Bluegrass Commercial Door & More.\\nPlease don't share private info.\\nFor anything urgent, call ") < 0) fail("chat note", "new note missing from app.js");
+  else if (/not someone in the office|I'm an AI helper|Answers are automated|\u2014/.test(app)) fail("chat note", "old note wording is still in app.js");
   else pass("chat note copy is in the opener");
 
   if (!/setTimeout\(function \(\) \{ ctl\.abort\(\); \}, 8000\)/.test(app)) fail("8s give-up", "abort timer is not 8000");
